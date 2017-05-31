@@ -1,0 +1,13 @@
+[{
+	"name": "01_load.userinfo",
+	"table": "hcdglobal.userinfo",
+	"key": ["userId"],
+	"nest": [{
+		"table": "sso.member",
+		"nestKey": [{
+			"member_id": "userId"
+		}]
+	}],
+	"exclude": ["member_id"],
+	"solrKey": ["member_id"]
+}]

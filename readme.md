@@ -1,2 +1,2 @@
-Data import from any to Solr
+Data import from cassandra to Solr
 =========================================
