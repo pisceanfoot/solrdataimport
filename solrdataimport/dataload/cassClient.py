@@ -47,9 +47,9 @@ class CassandraClient:
 
     @classmethod
     def wrapper(cls, column_type, param):
-        if column_type == cqltypes.UUIDType:
+        if column_type == cqltypes.UUIDType and not isinstance(param, UUID):
             return UUID(param)
-        if column_type == cqltypes.TimeUUIDType:
+        if column_type == cqltypes.TimeUUIDType and not isinstance(param, UUID):
             return UUID(param)
         else:
             return param

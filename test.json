@@ -4,9 +4,10 @@
 	"key": ["userId"],
 	"nest": [{
 		"table": "sso.member",
-		"nestKey": [{
+		"nestKey": {
 			"member_id": "userId"
-		}]
+		},
+		"cache": true
 	}],
 	"exclude": ["member_id"],
 	"solrKey": ["member_id"]

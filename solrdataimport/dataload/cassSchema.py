@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
-from solrdataimport.cassClient import CassandraClient
-import solrdataimport.cache as Cache
+from solrdataimport.dataload.cassClient import CassandraClient
+import solrdataimport.dataload.cache as Cache
 
 logger = logging.getLogger(__name__)
 
