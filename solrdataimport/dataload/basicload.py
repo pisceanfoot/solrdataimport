@@ -22,6 +22,7 @@ class BasicLoad(object):
         self.nestKey = nestKey
         self.exclude = exclude
         self.solrKey = solrKey
+        self.solrId = solrId
     """
     def __init__(self, section):
         self.section = section

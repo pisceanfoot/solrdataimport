@@ -4,6 +4,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json
 from solrdataimport.map import Map
 
+def lower_case(x):
+	return x.lower()
+
 class Payload:
 	"""
 	load section list from json file
@@ -20,6 +23,14 @@ class Payload:
 			if jsonObject:
 				for section in jsonObject:
 					sectionList.append(Map(section))
+
+		for section in sectionList:
+			if section.exclude:
+				section.exclude = map(lower_case, section.exclude)
+			if section.solrId:
+				section.solrId = map(lower_case, section.solrId)
+			if section.solrKey:
+				section.solrKey = map(lower_case, section.solrKey)
 
 		cls.sectionList = sectionList
 

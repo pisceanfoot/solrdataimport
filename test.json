@@ -10,5 +10,5 @@
 		"cache": true
 	}],
 	"exclude": ["member_id"],
-	"solrKey": ["member_id"]
+	"solrId": ["member_id"]
 }]

@@ -61,7 +61,7 @@ class DataImport:
         logger.debug('prepare solr')
         if self.fullDataImport:
             logger.debug('full data import, delete all')
-
+            solr.rollback()
             solr.deleteAll()
 
 
@@ -75,13 +75,16 @@ class DataImport:
             for item in row:
                 if section.exclude and item in section.exclude:
                     continue
+                if section.solrKey and not item in section.solrKey:
+                    continue
 
                 item_value = row[item]
+
                 self.__appendDocument(document, item, item_value)
 
-                if section.solrKey:
+                if section.solrId:
                     array = []
-                    for key in section.solrKey:
+                    for key in section.solrId:
                         array.append(str(row[key.lower()]))
 
                     document["id"] = '#'.join(array)
@@ -136,10 +139,3 @@ class DataImport:
         logger.debug('rollback solr change since last comit')
 
         solr.rollback()
-
-
-
-
-
-
-    
