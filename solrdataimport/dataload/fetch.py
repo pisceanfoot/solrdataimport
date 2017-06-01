@@ -49,9 +49,3 @@ class FetchData:
             all_rows = nestload.current_rows()
 
 
-
-
-
-
-
-

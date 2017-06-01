@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
+import json
+import uuid
 from solrdataimport.dataload.cassClient import CassandraClient
 from solrdataimport.dataload.cassSchema import CassSchema
 import solrdataimport.dataload.cache as Cache
@@ -24,6 +26,8 @@ class BasicLoad(object):
     def __init__(self, section):
         self.section = section
         self.schema = None
+        self.fetch_end = False
+        self.cacheKey = None
 
     def loadData(self, fullLoad=False, row=None, rowKey=None, **kwargs):
         logger.debug('load section: %s', self.section.name or self.section.table)
@@ -32,22 +36,41 @@ class BasicLoad(object):
         self.search = self.__buildCql(fullLoad, rowKey=rowKey)
         logger.debug("cql %s", self.search)
 
-        if self.section.cache and Cache.hasKey(self.search):
-            logger.info('hit cache: %s', self.search)
-            return
-
         params = self.__buildParam(fullLoad, row=row, rowKey=rowKey, **kwargs)
         logger.debug("params %s", params)
 
+        if self.section.cache:
+            self.cacheKey = self.__buildCacheKey(self.search, params)
+
+            if Cache.hasKey(self.cacheKey):
+                logger.info('loadData - hit cache: %s', self.cacheKey)
+                return
+
         self.__loadDataFromCass(self.search, params)
+
+    def __buildCacheKey(self, cql, params):
+        array = []
+
+        if params:
+            for x in params:
+                if isinstance(x, uuid.UUID):
+                    array.append(str(x))
+                else:
+                    array.append(x)
+
+        return cql + '_'.join(array)
 
     def __loadDataFromCass(self, cql, params):
         self.main_resultSet = CassandraClient.execute(cql, params)
 
     def current_rows(self):
-        if self.section.cache and Cache.hasKey(self.search):
-            logger.info('hit cache: %s', self.section.table)
-            return Cache.get(self.search)
+        if self.fetch_end:
+            return []
+
+        if self.section.cache and Cache.hasKey(self.cacheKey):
+            logger.debug('current_rows - hit cache: %s', self.cacheKey)
+            self.fetch_end = True
+            return Cache.get(self.cacheKey)
 
         resultSet = self.main_resultSet
         current_rows = resultSet.current_rows
@@ -71,23 +94,22 @@ class BasicLoad(object):
         if not self.section.cache:
             return
 
-        array = Cache.get(self.search)
+        array = Cache.get(self.cacheKey)
         if array:
             data_array = array + data_array
 
-        Cache.set(self.section.table, data_array)
-
+        Cache.set(self.cacheKey, data_array)
 
     def has_more_pages(self):
-        if self.section.cache and Cache.hasKey(self.search):
-            logger.info('hit cache: %s', self.search)
+        if self.section.cache and Cache.hasKey(self.cacheKey):
+            logger.debug('has_more_pages - hit cache: %s', self.cacheKey)
             return False
 
         return self.main_resultSet.has_more_pages
 
     def fetch_next_page(self):
-        if self.section.cache and Cache.hasKey(self.search):
-            logger.info('hit cache: %s', self.section.table)
+        if self.section.cache and Cache.hasKey(self.cacheKey):
+            logger.debug('fetch_next_page - hit cache: %s', self.cacheKey)
             return
 
         self.main_resultSet.fetch_next_page()

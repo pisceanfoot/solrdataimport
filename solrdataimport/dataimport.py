@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
-from solrdataimport.dataload import DataLoad
+from solrdataimport.dataload.fetch import FetchData
 from solrdataimport.payload import Payload
 
 logger = logging.getLogger(__name__)

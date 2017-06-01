@@ -14,9 +14,9 @@ class CassSchema:
 	def load(cls, table):
 		logger.debug('load schema for table %s', table)
 
-		schema = Cache.get(table)
+		schema = Cache.get('SCHEMA_' + table)
 		if schema:
-			logger.debug('load schema for cache %s', schema)
+			logger.debug('load schema from cache %s', schema)
 			return schema
 
 		cql = 'select * from {0} limit 1;'.format(table)
@@ -31,7 +31,7 @@ class CassSchema:
 			schema[column] = resultSet.column_types[index]
 			index += 1
 
-		Cache.set(table, schema)
+		Cache.set('SCHEMA_' + table, schema)
 
 		return schema
 
