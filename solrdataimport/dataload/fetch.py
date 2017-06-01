@@ -12,12 +12,12 @@ class FetchData:
     def __init__(self, section):
         self.section = section
 
-    def load(self, fullLoad=False, **kwargs):
+    def load(self, fullDataImport=False, **kwargs):
         self.dataload = BasicLoad(self.section)
-        self.dataload.loadData(fullLoad=fullLoad, **kwargs)
+        self.dataload.loadData(fullDataImport=fullDataImport, **kwargs)
 
-    def current_rows(self):
-        all_rows = self.dataload.current_rows()
+    def get_rows(self):
+        all_rows = self.dataload.get_rows()
         if not all_rows:
             logger.info('no row found in section %s', self.section.name)
             return []
@@ -39,13 +39,14 @@ class FetchData:
         nestload = BasicLoad(section)
         nestload.loadData(row=row, rowKey=section.nestKey)
 
-        all_rows = nestload.current_rows()
+        all_rows = nestload.get_rows()
         while all_rows:
             # combine
             for nest_row in all_rows:
+                # wrong multi to multi
                 row.update(nest_row)
             
             nestload.fetch_next_page()
-            all_rows = nestload.current_rows()
+            all_rows = nestload.get_rows()
 
 

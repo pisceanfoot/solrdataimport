@@ -20,7 +20,7 @@ class CassSchema:
 			return schema
 
 		cql = 'select * from {0} limit 1;'.format(table)
-		logger.debug('cql %s', cql)
+		logger.debug('schema cql %s', cql)
 
 		resultSet = CassandraClient.execute(cql)
 

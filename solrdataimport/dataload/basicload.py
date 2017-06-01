@@ -26,18 +26,18 @@ class BasicLoad(object):
     def __init__(self, section):
         self.section = section
         self.schema = None
-        self.fetch_end = False
+        self.cache_fetch_end = False
         self.cacheKey = None
 
-    def loadData(self, fullLoad=False, row=None, rowKey=None, **kwargs):
+    def loadData(self, fullDataImport=False, row=None, rowKey=None, **kwargs):
         logger.debug('load section: %s', self.section.name or self.section.table)
-        logger.info('full load: %s', fullLoad)
+        logger.info('full data import: %s', fullDataImport)
         
-        self.search = self.__buildCql(fullLoad, rowKey=rowKey)
+        self.search = self.__buildCql(fullDataImport, rowKey=rowKey)
         logger.debug("cql %s", self.search)
 
-        params = self.__buildParam(fullLoad, row=row, rowKey=rowKey, **kwargs)
-        logger.debug("params %s", params)
+        params = self.__buildParam(fullDataImport, row=row, rowKey=rowKey, **kwargs)
+        logger.debug("cql params %s", params)
 
         if self.section.cache:
             self.cacheKey = self.__buildCacheKey(self.search, params)
@@ -61,15 +61,17 @@ class BasicLoad(object):
         return cql + '_'.join(array)
 
     def __loadDataFromCass(self, cql, params):
+        logger.debug('execute cql %s', cql)
         self.main_resultSet = CassandraClient.execute(cql, params)
 
-    def current_rows(self):
-        if self.fetch_end:
+    def get_rows(self):
+        logger.debug('get_rows')
+        if self.cache_fetch_end:
             return []
 
         if self.section.cache and Cache.hasKey(self.cacheKey):
             logger.debug('current_rows - hit cache: %s', self.cacheKey)
-            self.fetch_end = True
+            self.cache_fetch_end = True
             return Cache.get(self.cacheKey)
 
         resultSet = self.main_resultSet
@@ -77,6 +79,8 @@ class BasicLoad(object):
 
         if not current_rows:
             return []
+
+        logger.debug('rows count %s', len(current_rows))
 
         column_length = len(resultSet.column_names)
         data_array = []
@@ -98,28 +102,23 @@ class BasicLoad(object):
         if array:
             data_array = array + data_array
 
+        logger.debug('set cache')
         Cache.set(self.cacheKey, data_array)
-
-    def has_more_pages(self):
-        if self.section.cache and Cache.hasKey(self.cacheKey):
-            logger.debug('has_more_pages - hit cache: %s', self.cacheKey)
-            return False
-
-        return self.main_resultSet.has_more_pages
 
     def fetch_next_page(self):
         if self.section.cache and Cache.hasKey(self.cacheKey):
-            logger.debug('fetch_next_page - hit cache: %s', self.cacheKey)
+            logger.debug('fetch_next_page - in cache return null: %s', self.cacheKey)
             return
 
+        logger.debug('fetch_next_page')
         self.main_resultSet.fetch_next_page()
 
-    def __buildCql(self, fullLoad, rowKey=None):
+    def __buildCql(self, fullDataImport, rowKey=None):
         cql = 'select * from {0}'.format(self.section.table)
         self.cql = cql
 
         appendKey = []
-        if not fullLoad and self.section.key:
+        if not fullDataImport and self.section.key:
             appendKey = self.section.key
         if rowKey:
             for key in rowKey:
@@ -131,8 +130,8 @@ class BasicLoad(object):
 
         return cql
 
-    def __buildParam(self, fullLoad, row=None, rowKey=None, **kwargs):
-        if fullLoad:
+    def __buildParam(self, fullDataImport, row=None, rowKey=None, **kwargs):
+        if fullDataImport:
             return None
 
         params = []

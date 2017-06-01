@@ -1,5 +1,5 @@
 [{
-	"name": "01_load.userinfo",
+	"name": "hcdglobal.userinfo",
 	"table": "hcdglobal.userinfo",
 	"key": ["userId"],
 	"nest": [{
