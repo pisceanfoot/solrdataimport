@@ -41,6 +41,7 @@ class BasicLoad(object):
 
         if self.section.cache:
             self.cacheKey = self.__buildCacheKey(self.search, params)
+            logger.debug("cache key %s", self.cacheKey)
 
             if Cache.hasKey(self.cacheKey):
                 logger.info('loadData - hit cache: %s', self.cacheKey)
@@ -49,16 +50,7 @@ class BasicLoad(object):
         self.__loadDataFromCass(self.search, params)
 
     def __buildCacheKey(self, cql, params):
-        array = []
-
-        if params:
-            for x in params:
-                if isinstance(x, uuid.UUID):
-                    array.append(str(x))
-                else:
-                    array.append(x)
-
-        return cql + '_'.join(array)
+        return cql + '_'.join(map(str, params))
 
     def __loadDataFromCass(self, cql, params):
         logger.debug('execute cql %s', cql)
@@ -91,19 +83,7 @@ class BasicLoad(object):
                 data[resultSet.column_names[index]] = row[index]
             data_array.append(data)
 
-        self.__set_cache(data_array)
         return data_array
-
-    def __set_cache(self, data_array):
-        if not self.section.cache:
-            return
-
-        array = Cache.get(self.cacheKey)
-        if array:
-            data_array = array + data_array
-
-        logger.debug('set cache')
-        Cache.set(self.cacheKey, data_array)
 
     def fetch_next_page(self):
         if self.section.cache and Cache.hasKey(self.cacheKey):
@@ -112,6 +92,21 @@ class BasicLoad(object):
 
         logger.debug('fetch_next_page')
         self.main_resultSet.fetch_next_page()
+
+    def has_more_pages(self):
+        if self.section.cache and Cache.hasKey(self.cacheKey):
+            logger.debug('has_more_pages - in cache return False: %s', self.cacheKey)
+            return False
+
+        logger.debug('has_more_pages')
+        return self.main_resultSet.has_more_pages()
+
+    def set_cache(self, data_array):
+        if not self.section.cache:
+            return
+
+        logger.debug('set cache')
+        Cache.set(self.cacheKey, data_array)
 
     def __buildCql(self, fullDataImport, rowKey=None):
         cql = 'select * from {0}'.format(self.section.table)

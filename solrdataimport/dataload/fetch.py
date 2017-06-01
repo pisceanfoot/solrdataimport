@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
+import copy
 from solrdataimport.dataload.basicload import BasicLoad
 from solrdataimport.map import Map
 
@@ -17,21 +18,30 @@ class FetchData:
         self.dataload.loadData(fullDataImport=fullDataImport, **kwargs)
 
     def get_rows(self):
-        all_rows = self.dataload.get_rows()
-        if not all_rows:
+        current_rows = self.dataload.get_rows()
+        if not current_rows:
             logger.info('no row found in section %s', self.section.name)
             return []
+        all_rows = current_rows
 
         if self.section.nest:
             logger.debug('nest child table')
-            for row in all_rows:
-                for nestSection in self.section.nest:
-                    self.__loadNest(nestSection, row)
+            for nestSection in self.section.nest:
+                
+                rows_after_combine = []
+                for row in all_rows:
+                    new_rows = self.__loadNest(nestSection, row)
+                    rows_after_combine = rows_after_combine + new_rows
+                all_rows = copy.copy(rows_after_combine)
+
 
         return all_rows
 
     def fetch_next_page(self):
         self.dataload.fetch_next_page()
+
+    def has_more_pages(self):
+        self.dataload.has_more_pages()
 
     def __loadNest(self, section, row):
         section = Map(section)
@@ -39,14 +49,28 @@ class FetchData:
         nestload = BasicLoad(section)
         nestload.loadData(row=row, rowKey=section.nestKey)
 
-        all_rows = nestload.get_rows()
-        while all_rows:
-            # combine
-            for nest_row in all_rows:
-                # wrong multi to multi
-                row.update(nest_row)
-            
+        copy_all_rows = []
+        current_rows = nestload.get_rows()
+        while current_rows:
+            copy_all_rows = copy_all_rows + current_rows
+
             nestload.fetch_next_page()
-            all_rows = nestload.get_rows()
+            current_rows = nestload.get_rows()
+
+        if copy_all_rows:
+            nestload.set_cache(copy_all_rows)
+
+        if not copy_all_rows:
+            return [row]
+
+        combine_array = []
+        for nest_item in copy_all_rows:
+            new_item = nest_item.copy()
+            new_item.update(row)
+
+            combine_array.append(new_item)
+
+        return combine_array
+
 
 

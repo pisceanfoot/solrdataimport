@@ -41,20 +41,21 @@ class DataImport:
 
         try:
             while True:
-                print(111)
                 cassDataRows = cassData.get_rows()
                 if not cassDataRows:
                     logger.debug('end export to solr')
                     break
 
                 self.__send2Solr(solr, section, cassDataRows)
-
                 cassData.fetch_next_page()
+
             self.__solrSent(solr)
             logger.debug('solr sent')
         except:
             logger.error('send solr document error %s', format_exc())
-            self.__solrRollback(solr)
+
+            if self.fullDataImport:
+                self.__solrRollback(solr)
 
     def __prepareSolr(self, solr):
         logger.debug('prepare solr')
@@ -135,3 +136,10 @@ class DataImport:
         logger.debug('rollback solr change since last comit')
 
         solr.rollback()
+
+
+
+
+
+
+    

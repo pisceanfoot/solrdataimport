@@ -6,6 +6,7 @@ import pylru
 size = 5000          # Size of the cache. The maximum number of key/value
                     # pairs you want the cache to hold.
 
+# TODO: TTL
 __cache = pylru.lrucache(size)
 
 def get(key):

@@ -103,7 +103,7 @@ class SolrInterface(object):
         rollback document changes
         """
         for core in self.endpoints:
-            self._send_solr_command(core, "{\"rollback\": true}")
+            self._send_solr_command(core, "[{\"rollback\":true }]")
 
     def commit(self):
         """
