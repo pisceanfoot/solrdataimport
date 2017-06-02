@@ -64,7 +64,6 @@ class DataImport:
             solr.rollback()
             solr.deleteAll()
 
-
     def __send2Solr(self, solr, section, cassDataRows):
         documents = []
 
@@ -128,8 +127,7 @@ class DataImport:
             solr_value = [unicode(val) for val in item_value]
 
         if solr_field and solr_value:
-            document[solr_field] = solr_value
-            
+            document[solr_field] = solr_value    
 
     def __solrSent(self, solr):
         logger.debug('commit changes')
@@ -139,3 +137,8 @@ class DataImport:
         logger.debug('rollback solr change since last comit')
 
         solr.rollback()
+
+
+
+
+

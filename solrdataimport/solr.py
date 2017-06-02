@@ -103,7 +103,9 @@ class SolrInterface(object):
         rollback document changes
         """
         for core in self.endpoints:
-            self._send_solr_command(core, "[{\"rollback\":true }]")
+            # self._send_solr_command(core, "{\"rollback\":{} }")
+            # Rollback is currently not supported in SolrCloud mode. (SOLR-4895)
+            pass
 
     def commit(self):
         """
