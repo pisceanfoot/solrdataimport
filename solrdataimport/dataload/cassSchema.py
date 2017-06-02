@@ -31,7 +31,7 @@ class CassSchema:
 			schema[column] = resultSet.column_types[index]
 			index += 1
 
-		Cache.set('SCHEMA_' + table, schema)
+		Cache.set('SCHEMA_' + table, schema, 3600)
 
 		return schema
 
