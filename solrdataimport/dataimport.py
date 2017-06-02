@@ -65,7 +65,7 @@ class DataImport:
 
         document = build_search_key(section, **kwargs)
         logger.debug('search document %s', document)
-        
+
         solr_core_url = urlparse.urljoin(self.solr_url, section.core_name or section.name)
         logger.debug('solr core url: %s', solr_core_url)
 
@@ -101,5 +101,4 @@ class DataImport:
         logger.debug('rollback solr change since last comit')
 
         solr.rollback()
-
 

@@ -4,9 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json
 from solrdataimport.map import Map
 
-def lower_case(x):
-	return x.lower()
-
 class Payload:
 	"""
 	load section list from json file
@@ -22,15 +19,32 @@ class Payload:
 			jsonObject = json.load(f, encoding='utf-8')
 			if jsonObject:
 				for section in jsonObject:
-					sectionList.append(Map(section))
+					section_map = Map(section)
+					if section_map.nest:
+						array = []
+						for nest in section_map.nest:
+							section_nest = Map(nest)
 
-		for section in sectionList:
-			if section.exclude:
-				section.exclude = map(lower_case, section.exclude)
-			if section.solrId:
-				section.solrId = map(lower_case, section.solrId)
-			if section.solrKey:
-				section.solrKey = map(lower_case, section.solrKey)
+							if section_nest.condition:
+								section_nest.condition = lower_case_dict(section_nest, 'condition')
+							if section_nest.alias:
+								section_nest.alias = lower_case_dict(section_nest, 'alias', value_lower=True)
+
+							array.append(section_nest)
+						section_map.nest = array
+
+					if section_map.exclude:
+						section_map.exclude = map(lower_case, section_map.exclude)
+					if section_map.solrId:
+						section_map.solrId = map(lower_case, section_map.solrId)
+					if section_map.solrKey:
+						section_map.solrKey = map(lower_case, section_map.solrKey)
+					if section_map.condition:
+						section_map.condition = lower_case_dict(section_map, 'condition')
+					if section_map.alias:
+						section_map.alias = lower_case_dict(section_map, 'alias', value_lower=True)
+
+					sectionList.append(section_map)
 
 		cls.sectionList = sectionList
 
@@ -42,7 +56,28 @@ class Payload:
 
 		return None
 
+
+def lower_case(x):
+	return x.lower()
+
+def lower_case_dict(section_map, field, value_lower=False):
+	value = section_map.get(field)
+	if not value:
+		return value
+
+	new_dic = {}
+	for x in value:
+		data = value[x]
+		if value_lower and hasattr(data, 'lower'):
+			data = data.lower()
+
+		new_dic[x.lower()] = data
+
+	return new_dic
+
+
 if __name__ == '__main__':
 	config_file='/Users/leo/Documents/Workspace/OpenDev/solrdataimport/test.json'
 	Payload.load(config_file)
+	print(Payload.sectionList)
 	# print(Payload.get('01_load.userinfo'))

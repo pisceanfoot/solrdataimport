@@ -20,6 +20,13 @@
 		"table": "hb.epic_member_map",
 		"nestKey": {
 			"epic_id": "epic_id"
+		},
+		"condition": {
+			"team_id": "b39ba1e9-4505-49ce-92d7-92c4b77d9923"
+		},
+		"alias": {
+			"epic_id": "team_epic_id"
 		}
-	}]
+	}],
+	"solrId": ["epic_id", "member_id"]
 }]

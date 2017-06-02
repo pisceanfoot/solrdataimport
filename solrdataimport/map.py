@@ -30,3 +30,9 @@ class Map(dict):
     def __delitem__(self, key):
         super(Map, self).__delitem__(key)
         del self.__dict__[key]
+
+
+if __name__ == '__main__':
+    m = Map({'first_name': 'Eduardo'})
+    print m.get('first_name')
+    print m

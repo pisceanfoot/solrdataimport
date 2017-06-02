@@ -77,11 +77,22 @@ class BasicLoad(object):
 
         column_length = len(resultSet.column_names)
         data_array = []
+
         for row in current_rows:
 
             data = {}
             for index in range(column_length):
-                data[resultSet.column_names[index]] = row[index]
+                column_name = resultSet.column_names[index]
+                column_value = row[index]
+
+                if self.section.condition and column_name in self.section.condition:
+                    if not self.__checkCondition(column_name, column_value):
+                        logger.debug('===>condition check no pass')
+                        continue
+
+                if self.section.alias and column_name in self.section.alias:
+                    column_name = self.section.alias[column_name]
+                data[column_name] = column_value
             data_array.append(data)
 
         return data_array
@@ -151,4 +162,23 @@ class BasicLoad(object):
     def __fetchFieldType(self, field):
         schema = CassSchema.load(self.section.table)
         return schema[field.lower()]
+
+    def __checkCondition(self, column_name, column_value):
+        logger.debug('check condition')
+
+        check_value = None
+        if isinstance(column_value, uuid.UUID):
+            check_value = str(column_value)
+        else:
+            check_value = column_value
+
+        return self.section.condition[column_name] == check_value
+
+
+
+
+
+
+
+
 

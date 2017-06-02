@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 import copy
 from solrdataimport.dataload.basicload import BasicLoad
-from solrdataimport.map import Map
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,8 @@ class FetchData:
                 rows_after_combine = []
                 for row in all_rows:
                     new_rows = self.__loadNest(nestSection, row)
-                    rows_after_combine = rows_after_combine + new_rows
+                    if new_rows:
+                        rows_after_combine = rows_after_combine + new_rows
                 all_rows = copy.copy(rows_after_combine)
 
 
@@ -44,15 +44,13 @@ class FetchData:
         self.dataload.has_more_pages()
 
     def __loadNest(self, section, row):
-        section = Map(section)
-
         nestload = BasicLoad(section)
         nestload.loadData(row=row, rowKey=section.nestKey)
 
         current_rows = nestload.get_rows()
         if not current_rows:
             logger.error('empty nest row %s', section.table)
-            return [row]
+            return None
 
         copy_all_rows = []
         while current_rows:
@@ -61,11 +59,7 @@ class FetchData:
             nestload.fetch_next_page()
             current_rows = nestload.get_rows()
 
-        if copy_all_rows:
-            nestload.set_cache(copy_all_rows)
-
-        if not copy_all_rows:
-            return [row]
+        nestload.set_cache(copy_all_rows)
 
         combine_array = []
         for nest_item in copy_all_rows:

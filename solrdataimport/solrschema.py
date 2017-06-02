@@ -23,7 +23,7 @@ def build_document(section, row):
         if section.solrId:
             array = []
             for key in section.solrId:
-                array.append(str(row[key.lower()]))
+                array.append(str(row[key]))
 
             document["id"] = '#'.join(array)
     return document
