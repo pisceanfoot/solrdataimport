@@ -49,8 +49,12 @@ class FetchData:
         nestload = BasicLoad(section)
         nestload.loadData(row=row, rowKey=section.nestKey)
 
-        copy_all_rows = []
         current_rows = nestload.get_rows()
+        if not current_rows:
+            logger.error('empty nest row %s', section.table)
+            return [row]
+
+        copy_all_rows = []
         while current_rows:
             copy_all_rows = copy_all_rows + current_rows
 

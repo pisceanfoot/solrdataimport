@@ -27,7 +27,16 @@ def get(key):
 
 def hasKey(key):
 	if key in __cache:
-		return True
+		cache_item = __cache[key]
+
+		now = datetime.datetime.now()
+		enddate = cache_item['enddate']
+
+		if (enddate - now).total_seconds() > 0:
+			return True
+		else:
+			del __cache[key]
+			return False
 	else:
 		return False
 
