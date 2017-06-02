@@ -4,12 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import urlparse
-import uuid
-import datetime
-import cassandra
+
 from solrdataimport.payload import Payload
 from solrdataimport.dataload.fetch import FetchData
-from solrdataimport.solr import SolrInterface, get_date_string
+from solrdataimport.solr import SolrInterface
+from solrdataimport.solrschema import build_document, build_search_key
 from solrdataimport.util import format_exc
 
 logger = logging.getLogger(__name__)
@@ -57,6 +56,23 @@ class DataImport:
             if self.fullDataImport:
                 self.__solrRollback(solr)
 
+    def deleteSolr(self, name, **kwargs):
+        logger.info('export sectoin "%s" to solr', name)
+
+        section = Payload.get(name)
+        if not section:
+            raise Exception('section %s not found', name)
+
+        document = build_search_key(section, **kwargs)
+        logger.debug('search document %s', document)
+        
+        solr_core_url = urlparse.urljoin(self.solr_url, section.core_name or section.name)
+        logger.debug('solr core url: %s', solr_core_url)
+
+        solr = SolrInterface([solr_core_url])
+        solr.delete(document)
+
+
     def __prepareSolr(self, solr):
         logger.debug('prepare solr')
         if self.fullDataImport:
@@ -70,64 +86,12 @@ class DataImport:
         for row in cassDataRows:
             logger.debug('row %s', row)
 
-            document = {}
-            for item in row:
-                if section.exclude and item in section.exclude:
-                    continue
-                if section.solrKey and not item in section.solrKey:
-                    continue
-
-                item_value = row[item]
-
-                self.__appendDocument(document, item, item_value)
-
-                if section.solrId:
-                    array = []
-                    for key in section.solrId:
-                        array.append(str(row[key.lower()]))
-
-                    document["id"] = '#'.join(array)
-
+            document = build_document(section, row)
             logger.debug('document %s', document)
             if document:
                 documents.append(document)
 
         solr.add(documents)
-
-    def __appendDocument(self, document, item, item_value):
-        solr_field = None
-        solr_value = None
-
-        if item_value is None:
-            return None
-
-        value_type = type(item_value)
-        if value_type is type(None):
-            pass
-        elif value_type is uuid.UUID:
-            solr_field = item + '_s'
-            solr_value = unicode(item_value)
-        elif value_type in (unicode, str):
-            solr_field = item + '_s'
-            solr_value = item_value
-        elif value_type in (int, long):
-            solr_field = item + '_i'
-            solr_value = unicode(item_value)
-        elif value_type is float:
-            solr_field = item + '_f'
-            solr_value = unicode(item_value)
-        elif value_type is bool:
-            solr_field = item + '_b'
-            solr_value = unicode(item_value)
-        elif value_type is datetime.datetime:
-            solr_field = item + '_dt'
-            solr_value = get_date_string(item_value)
-        elif value_type is cassandra.util.SortedSet:
-            solr_field = item + '_ss'
-            solr_value = [unicode(val) for val in item_value]
-
-        if solr_field and solr_value:
-            document[solr_field] = solr_value    
 
     def __solrSent(self, solr):
         logger.debug('commit changes')
@@ -137,8 +101,5 @@ class DataImport:
         logger.debug('rollback solr change since last comit')
 
         solr.rollback()
-
-
-
 
 

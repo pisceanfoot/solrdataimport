@@ -91,12 +91,20 @@ class SolrInterface(object):
         for core in self.endpoints:
             self._send_solr_command(core, "{\"delete\": { \"query\" : \"*:*\"}}")
 
-    def delete(self, id):
+    def delete(self, doc):
         """
         Deletes document with ID on all Solr cores
         """
+
+        array = []
+        for x in doc:
+            array.append(x + ":" + doc[x])
+
+        del_command = "{\"delete\" : { \"query\": \"" + " AND ".join(map(str, array)) + "\"}}"
+        logger.debug('delete command %s', del_command)
+
         for core in self.endpoints:
-            self._send_solr_command(core, "{\"delete\" : { \"id\" : \"%s\"}}" % (id,))
+            self._send_solr_command(core, del_command)
 
     def rollback(self):
         """

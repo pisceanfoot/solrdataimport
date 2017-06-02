@@ -35,4 +35,7 @@ class CassSchema:
 
 		return schema
 
-
+	@classmethod
+	def loadField(cls, table, field):
+		schema = cls.load(table)
+		return schema[field.lower()]
