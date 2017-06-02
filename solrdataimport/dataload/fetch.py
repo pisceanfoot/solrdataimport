@@ -20,7 +20,7 @@ class FetchData:
     def get_rows(self):
         current_rows = self.dataload.get_rows()
         if not current_rows:
-            logger.info('no row found in section %s', self.section.name)
+            logger.debug('no row found in section %s', self.section.name)
             return []
         all_rows = current_rows
 

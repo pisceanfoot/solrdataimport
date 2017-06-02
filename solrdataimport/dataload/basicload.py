@@ -32,7 +32,7 @@ class BasicLoad(object):
 
     def loadData(self, fullDataImport=False, row=None, rowKey=None, **kwargs):
         logger.debug('load section: %s', self.section.name or self.section.table)
-        logger.info('full data import: %s', fullDataImport)
+        logger.debug('full data import: %s', fullDataImport)
         
         self.search = self.__buildCql(fullDataImport, rowKey=rowKey)
         logger.debug("cql %s", self.search)
@@ -45,7 +45,7 @@ class BasicLoad(object):
             logger.debug("cache key %s", self.cacheKey)
 
             if Cache.hasKey(self.cacheKey):
-                logger.info('loadData - hit cache: %s', self.cacheKey)
+                logger.debug('loadData - hit cache: %s', self.cacheKey)
                 return
 
         self.__loadDataFromCass(self.search, params)

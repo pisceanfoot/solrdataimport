@@ -30,11 +30,7 @@ class CassandraClient:
         logger.debug('cassandra connect info %s %s', host, param)
 
         cls.cluster = Cluster(host, **param)
-        
-
-    @classmethod
-    def connect(cls, keyspace):
-        cls.session = cls.cluster.connect(keyspace)
+        cls.session = cls.cluster.connect('system')
 
     @classmethod
     def execute(cls, cql, data = None):
