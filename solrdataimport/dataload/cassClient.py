@@ -16,24 +16,35 @@ class CassandraClient:
 
     cluster = None
     session = None
+    host = None
+    param = None
 
     @classmethod
     def init(cls, host, port = None, username=None, password=None):
-        auth_provider = None
-
         param = {}
         if username and password:
             param['auth_provider'] = PlainTextAuthProvider(username=username, password=password)
         if port:
             param['port'] = port
 
-        logger.debug('cassandra connect info %s %s', host, param)
+        cls.param = param
+        cls.host = host
 
-        cls.cluster = Cluster(host, **param)
+    @classmethod
+    def connect(cls):
+        logger.debug('cassandra connect info %s %s', cls.host, cls.param)
+
+        cls.cluster = Cluster(cls.host, **cls.param)
         cls.session = cls.cluster.connect('system')
+
 
     @classmethod
     def execute(cls, cql, data = None):
+        if not cls.session:
+            cls.connect()
+
+        logger.debug('excute cql %s : %s', cql, data)
+        logger.debug(cls.session)
         if data:
             pcql = cls.session.prepare(cql)
             pcql.consistency_level = ConsistencyLevel.LOCAL_QUORUM
@@ -52,6 +63,7 @@ class CassandraClient:
 
     @classmethod
     def shutdown(cls):
-        cls.cluster.shutdown()
+        if cls.cluster:
+            cls.cluster.shutdown()
 
 
