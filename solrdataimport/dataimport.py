@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 import urlparse
 
+from solrdataimport.dataload.cassClient import CassandraClient
 from solrdataimport.payload import Payload
 from solrdataimport.dataload.fetch import FetchData
 from solrdataimport.solr import SolrInterface
@@ -19,8 +20,11 @@ class DataImport:
         self.config_file = setting['config_file']
         self.solr_url = setting['solr_url']
 
-        Payload.load(self.config_file)
+        cass = setting['cassandra']
+        cass_hosts = cass.pop('hosts')
+        CassandraClient.init(cass_hosts, **cass)
 
+        Payload.load(self.config_file)
 
     def exportSolr(self, name, **kwargs):
         logger.info('export sectoin "%s" to solr', name)
