@@ -48,7 +48,7 @@ class SolrInterface(object):
         """
 
         # Check document language and dispatch to correct core
-        url = urlparse.urljoin(core_url + '/', "update?overwrite=true&wt=json")
+        url = urlparse.urljoin(core_url + '/', "update?overwrite=true&wt=json&commitWithin=1000")
         try:
             request = urllib2.Request(url, json_command, {'Content-Type':'application/json'})
             response = urllib2.urlopen(request).read()
