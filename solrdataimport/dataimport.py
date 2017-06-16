@@ -11,16 +11,18 @@ from solrdataimport.dataload.fetch import FetchData
 from solrdataimport.solr import SolrInterface
 from solrdataimport.solrschema import build_document, build_search_key
 from solrdataimport.util import format_exc
+from solrdataimport.map import Map
 
 logger = logging.getLogger(__name__)
 
 class DataImport:
     def __init__(self, setting):
-        self.fullDataImport = setting['fullDataImport']
-        self.config_file = setting['config_file']
-        self.solr_url = setting['solr_url']
+        setting = Map(setting)
+        self.fullDataImport = setting.fullDataImport or False
+        self.config_file = setting.config_file
+        self.solr_url = setting.solr_url
 
-        cass = setting['cassandra']
+        cass = setting.cassandra
         cass_hosts = cass.pop('hosts')
         CassandraClient.init(cass_hosts, **cass)
 
