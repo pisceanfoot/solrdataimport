@@ -168,3 +168,5 @@ $RECYCLE.BIN/
 !/bin
 nohup.out
 *.sublime-*
+debug.py
+debug.json

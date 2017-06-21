@@ -1,14 +1,39 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals, \
     with_statement
+
 import json
-from solrdataimport.map import Map
+from solrdataimport.lib.map import Map
 
 class Payload:
 	"""
 	load section list from json file
 
 	Payload.load('json_file_path')
+
+	{
+		"name": "key of the config, and also set as solr core name if core_name not present",
+		"core_name": "solr core name",
+		"table": "cassandra table name (keyspace.table), will use in cql like select * from table.",
+		"key": ["table key and partition key list"],
+		"nest": [{
+			"table": "table name, use like select * from table_parent inner join this_table",
+			"nestKey": {
+				"nest_table_key": "parent_table_key", # select * from table_parent inner join this_table where this_table.nest_table_key = table_parent.parent_table_key
+				"nest_table_key2": "parent_table_key2"
+			},
+			"cache": Ture or False # nest table can be cachable
+			"condition": {
+				"filed": "value"  # field should equals to value
+			},
+			"alias": {
+	            "field": "new name"
+	        }
+		}],
+		"solrId": ["value for solr _id"],
+	  	"solrKey":["solr filed"],
+	  	"exclude": ["field name"]
+	}
 	"""
 	sectionList=None
 
