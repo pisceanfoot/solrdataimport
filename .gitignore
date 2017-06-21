@@ -170,3 +170,5 @@ nohup.out
 *.sublime-*
 debug.py
 debug.json
+/dist
+*.egg-info
