@@ -71,6 +71,9 @@ class SolrInterface(object):
         if len(self._add_batch) > SOLR_ADD_BATCH:
             self._addFlushBatch()
 
+    def flush(self):
+        self._addFlushBatch()
+
     def _addFlushBatch(self):
         """
         Sends all waiting documents to Solr
@@ -111,9 +114,7 @@ class SolrInterface(object):
         rollback document changes
         """
         for core in self.endpoints:
-            # self._send_solr_command(core, "{\"rollback\":{} }")
-            # Rollback is currently not supported in SolrCloud mode. (SOLR-4895)
-            pass
+            self._send_solr_command(core, "{\"rollback\":{} }")
 
     def commit(self):
         """
