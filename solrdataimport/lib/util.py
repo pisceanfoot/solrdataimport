@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import traceback
 
 def format_exc():

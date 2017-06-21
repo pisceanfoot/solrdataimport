@@ -1,12 +1,25 @@
 import logging
 import uuid
 import datetime
+
 import cassandra
-from solrdataimport.dataload.cassSchema import CassSchema
 from cassandra import cqltypes
-from solrdataimport.solr import get_date_string
+
+from solrdataimport.cass.cassSchema import CassSchema
+from solrdataimport.solr.solrclient import get_date_string
 
 logger = logging.getLogger(__name__)
+
+def build_document_key(section, row):
+    document = {}
+    for item in row:
+        if section.solrId:
+            array = []
+            for key in section.solrId:
+                array.append(str(row[key]))
+
+            document["id"] = '#'.join(array)
+    return document
 
 def build_document(section, row):
     document = {}
@@ -31,6 +44,8 @@ def build_document(section, row):
 def __appendDocument(document, item, item_value):
         solr_field = None
         solr_value = None
+
+        item = item.lower()
 
         if item_value is None:
             return None

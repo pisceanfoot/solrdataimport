@@ -47,7 +47,7 @@ class CassandraClient:
         logger.debug(cls.session)
         if data:
             pcql = cls.session.prepare(cql)
-            pcql.consistency_level = ConsistencyLevel.LOCAL_QUORUM
+            pcql.consistency_level = ConsistencyLevel.ONE
             return cls.session.execute(pcql, data)
         else:
             return cls.session.execute(cql)

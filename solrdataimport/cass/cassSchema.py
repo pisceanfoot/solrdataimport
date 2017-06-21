@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
-from solrdataimport.dataload.cassClient import CassandraClient
-import solrdataimport.dataload.cache as Cache
+from solrdataimport.cass.cassClient import CassandraClient
+import solrdataimport.lib.cache as Cache
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class CassSchema:
 			index += 1
 
 		logger.debug('insert schema into cache')
-		Cache.set('SCHEMA_' + table, schema, 3600)
+		Cache.set('SCHEMA_' + table, schema, 600)
 
 		return schema
 

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import copy
-from solrdataimport.dataload.basicload import BasicLoad
+from solrdataimport.dataload.cassdata import CassandraData
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +12,12 @@ class FetchData:
     def __init__(self, section):
         self.section = section
 
+    @classmethod
+    def initCass(cls, cassConfig):
+        CassandraData.initCass(cassConfig)
+
     def load(self, fullDataImport=False, **kwargs):
-        self.dataload = BasicLoad(self.section)
+        self.dataload = CassandraData(self.section)
         self.dataload.loadData(fullDataImport=fullDataImport, **kwargs)
 
     def get_rows(self):
@@ -44,7 +48,7 @@ class FetchData:
         self.dataload.has_more_pages()
 
     def __loadNest(self, section, row):
-        nestload = BasicLoad(section)
+        nestload = CassandraData(section)
         nestload.loadData(row=row, rowKey=section.nestKey)
 
         current_rows = nestload.get_rows()

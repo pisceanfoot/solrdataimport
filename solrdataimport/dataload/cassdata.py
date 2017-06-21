@@ -5,14 +5,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 import json
 import uuid
-from solrdataimport.dataload.cassClient import CassandraClient
-from solrdataimport.dataload.cassSchema import CassSchema
-import solrdataimport.dataload.cache as Cache
+from solrdataimport.cass.cassClient import CassandraClient
+from solrdataimport.cass.cassSchema import CassSchema
+import solrdataimport.lib.cache as Cache
 
 logger = logging.getLogger(__name__)
 
 
-class BasicLoad(object):
+class CassandraData(object):
     """
     section:
         self.name = name
@@ -29,6 +29,11 @@ class BasicLoad(object):
         self.schema = None
         self.cache_fetch_end = False
         self.cacheKey = None
+
+    @classmethod
+    def initCass(cls, cassConfig):
+        cass_hosts = cassConfig.pop('hosts')
+        CassandraClient.init(cass_hosts, **cassConfig)
 
     def loadData(self, fullDataImport=False, row=None, rowKey=None, **kwargs):
         logger.debug('load section: %s', self.section.name or self.section.table)
