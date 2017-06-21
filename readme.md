@@ -29,6 +29,7 @@ if __name__ == '__main__':
 config
 ----------------------
 
+```
 [{
     "name": "userinfo",
     "table": "userinfo",
@@ -62,3 +63,4 @@ config
     "solrId": ["epic_id", "member_id"]，
     "solrKey": [epic_id", "member_id", "xid", "xkey"] # Option
 }]
+```
