@@ -69,7 +69,7 @@ class SolrExport(object):
 
     def solrRollback(self):
         # Cluster mode not support rollback
-        if not self.solrCluster:
+        if self.fullDataImport and not self.solrCluster:
             logger.debug('rollback solr change since last comit')
             self.__client.rollback()
 
