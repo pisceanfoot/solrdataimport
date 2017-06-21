@@ -15,7 +15,8 @@ if __name__ == '__main__':
         "fullDataImport": False,
         "config_file": "/fil_epath/test.json",
         "solr_url": "http://ip:8983/solr/",
-         "cassandra": {
+        "solr_cluster": True or False,
+        "cassandra": {
             "hosts": ["ip"],
             "username": "username",
             "password": "password"

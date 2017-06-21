@@ -25,7 +25,10 @@ class Payload:
 			"cache": Ture or False # nest table can be cachable
 			"condition": {
 				"filed": "value"  # field should equals to value
-			}
+			},
+			"alias": {
+	            "field": "new name"
+	        }
 		}],
 		"solrId": ["value for solr _id"],
 	  	"solrKey":["solr filed"],
