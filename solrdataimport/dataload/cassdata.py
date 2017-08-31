@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
     with_statement
 
 import logging
+import copy
 import json
 import uuid
 from solrdataimport.cass.cassClient import CassandraClient
@@ -32,8 +33,9 @@ class CassandraData(object):
 
     @classmethod
     def initCass(cls, cassConfig):
-        cass_hosts = cassConfig.pop('hosts')
-        CassandraClient.init(cass_hosts, **cassConfig)
+        config = copy.copy(cassConfig)
+        cass_hosts = config.pop('hosts')
+        CassandraClient.init(cass_hosts, **config)
 
     def loadData(self, fullDataImport=False, row=None, rowKey=None, **kwargs):
         logger.debug('load section: %s', self.section.name or self.section.table)
