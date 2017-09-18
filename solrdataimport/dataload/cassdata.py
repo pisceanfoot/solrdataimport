@@ -167,6 +167,8 @@ class CassandraData(object):
         return params
 
     def __fetchFieldType(self, field):
+        logger.debug('fetch filed type for table "%s" field "%s"', self.section.table, field)
+
         schema = CassSchema.load(self.section.table)
         return schema[field.lower()]
 
