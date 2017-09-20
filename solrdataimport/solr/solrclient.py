@@ -31,12 +31,8 @@ def to_solr_date(date):
     return utc_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 class SolrInterface(object):
-    _add_batch = []
-    _shards = None
-
-    endpoints = []
-
     def __init__(self, endpoints):
+        self._add_batch = []
         if not endpoints:
             logger.warning("Faulty Solr configuration, SOLR will not be available!")
         self.endpoints = endpoints

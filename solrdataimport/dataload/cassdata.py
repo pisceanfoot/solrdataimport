@@ -167,8 +167,16 @@ class CassandraData(object):
         return params
 
     def __fetchFieldType(self, field):
+        logger.debug('fetch filed type for table "%s" field "%s"', self.section.table, field)
+
         schema = CassSchema.load(self.section.table)
-        return schema[field.lower()]
+        field_name_lower = field.lower()
+
+        if field_name_lower in schema:
+            return schema[field_name_lower]
+        else:
+            logger.error('field "%s" not in table "%s"', field, self.section.table)
+            raise Exception('field "%s" not in table "%s"', field, self.section.table)
 
     def __checkCondition(self, column_name, column_value):
         logger.debug('check condition')
