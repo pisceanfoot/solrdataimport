@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import copy
+import json
 from solrdataimport.dataload.cassdata import CassandraData
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,13 @@ class FetchData:
                 all_rows = copy.copy(rows_after_combine)
 
 
+        if self.section.combine:
+            logger.debug('combine child table as a new field')
+
+            for combineSection in self.section.combine:
+                for row in all_rows:
+                    self.__setCombine(combineSection, row)
+        
         return all_rows
 
     def fetch_next_page(self):
@@ -53,15 +61,18 @@ class FetchData:
 
         current_rows = nestload.get_rows()
         if not current_rows:
-            logger.error('empty nest row %s', section.table)
+            logger.debug('empty nest row %s', section.table)
             return None
 
         copy_all_rows = []
         while current_rows:
             copy_all_rows = copy_all_rows + current_rows
 
-            nestload.fetch_next_page()
-            current_rows = nestload.get_rows()
+            if nestload.has_more_pages():
+                nestload.fetch_next_page()
+                current_rows = nestload.get_rows()
+            else:
+                break
 
         nestload.set_cache(copy_all_rows)
 
@@ -73,6 +84,40 @@ class FetchData:
             combine_array.append(new_item)
 
         return combine_array
+
+    def __setCombine(self, section, row):
+        combineload = CassandraData(section)
+        combineload.loadData(row=row, rowKey=section.combineKey)
+
+        current_rows = combineload.get_rows()
+        if not current_rows:
+            logger.debug('empty nest row %s', section.table)
+            return
+
+        copy_all_rows = []
+        while current_rows:
+            copy_all_rows = copy_all_rows + current_rows
+
+            if combineload.has_more_pages():
+                combineload.fetch_next_page()
+                current_rows = combineload.get_rows()
+            else:
+                break
+
+        combineload.set_cache(copy_all_rows)
+
+        if copy_all_rows:
+            if section.field_map_one2one:
+                copy_all_rows = copy_all_rows[0]
+
+            if section.field_type == "string":
+                row[section.field_name] = json.dumps(copy_all_rows, ensure_ascii=False)
+            else:
+                row[section.field_name] = copy_all_rows
+                    
+
+
+
 
 
 

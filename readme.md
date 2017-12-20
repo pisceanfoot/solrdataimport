@@ -5,6 +5,8 @@ Data import from cassandra to Solr
 debug
 ------------------------
 
+
+```
 if __name__ == '__main__':
     import logging.config
     logging.basicConfig(level=logging.ERROR,
@@ -25,7 +27,7 @@ if __name__ == '__main__':
     dataimport = DataImport(setting)
     # dataimport.exportSolr('userinfo', **{"userId": "27aa99c7-3673-4602-95a9-ce0620b51695"})
     # dataimport.deleteSolr('game_info', **{"game_id": "30ae2131-87d4-4f3c-802d-b671ddeb6648"})
-
+```
 
 config
 ----------------------

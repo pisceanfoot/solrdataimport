@@ -21,6 +21,7 @@ class CassandraData(object):
         self.key = key
         self.nest = nest
         self.nestKey = nestKey
+        self.combineKey = combineKey
         self.exclude = exclude
         self.solrKey = solrKey
         self.solrId = solrId
@@ -123,6 +124,8 @@ class CassandraData(object):
     def set_cache(self, data_array):
         if not self.section.cache:
             return
+        if Cache.hasKey(self.cacheKey):
+            return;
 
         logger.debug('set cache')
         Cache.set(self.cacheKey, data_array)

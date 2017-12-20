@@ -30,6 +30,23 @@ class Payload:
 	            "field": "new name"
 	        }
 		}],
+		"combine": [{ # combine result will set as a JSON field in parent doc
+					  # one record will set like "name": {}
+					  # mutil records will set as "name": [{}]
+					  # also can set as "name": JSON.stringify(...)
+			"table": "table name",
+			"combineKey": { # same as nestKey
+				"nest_table_key": "parent_table_key", # select * from table_parent inner join this_table where this_table.nest_table_key = table_parent.parent_table_key
+				"nest_table_key2": "parent_table_key2"
+			},
+			"field_name": "new field name",
+			"field_type": "string",
+			"field_map_one2one": True,
+			"cache": Ture or False # nest table can be cachable
+			"condition": {
+				"filed": "value"  # field should equals to value
+			}
+		}],
 		"solrId": ["value for solr _id"],
 	  	"solrKey":["solr filed"],
 	  	"exclude": ["field name"]
@@ -57,6 +74,15 @@ class Payload:
 
 							array.append(section_nest)
 						section_map.nest = array
+					if section_map.combine:
+						array = []
+						for combine in section_map.combine:
+							section_combine = Map(combine)
+							if section_combine.condition:
+								section_combine.condition = lower_case_dict(section_combine, 'condition')
+
+							array.append(section_combine)
+						section_map.combine = array
 
 					if section_map.exclude:
 						section_map.exclude = map(lower_case, section_map.exclude)
