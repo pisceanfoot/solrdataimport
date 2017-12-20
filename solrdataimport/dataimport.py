@@ -21,7 +21,8 @@ class DataImport:
         self.solrConfig = {
             "solr_url": setting.solr_url,
             "fullDataImport": self.fullDataImport,
-            "cluster": setting.solr_cluster or False
+            "cluster": setting.solr_cluster or False,
+            "commitWithin": setting.commitWithin or 1000
         }
 
         # cass setting

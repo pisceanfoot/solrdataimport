@@ -21,6 +21,7 @@ class SolrExport(object):
         self.solr_url = solrConfig['solr_url']
         self.fullDataImport = solrConfig.get('fullDataImport') or False
         self.solrCluster = solrConfig.get('cluster') or False
+        self.commitWithIn = solrConfig.get('commitWithIn') or 1000
 
         if not self.solr_url.endswith('/'):
             self.solr_url = self.solr_url + '/'
@@ -31,7 +32,14 @@ class SolrExport(object):
     def __getClient(self):
         solr_core_url = urlparse.urljoin(self.solr_url, self.section.core_name or self.section.name)
         logger.debug('solr core url: %s', solr_core_url)
-        return SolrInterface([solr_core_url])
+
+        commitWithIn= None
+        if self.solrCluster:
+            commitWithIn = self.commitWithIn
+        elif not self.fullDataImport:
+            commitWithIn = self.commitWithIn
+
+        return SolrInterface([solr_core_url], commitWithIn = commitWithIn)
 
     def prepareSolr(self):
         if self.fullDataImport:

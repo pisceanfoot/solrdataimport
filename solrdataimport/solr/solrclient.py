@@ -31,11 +31,12 @@ def to_solr_date(date):
     return utc_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 class SolrInterface(object):
-    def __init__(self, endpoints):
+    def __init__(self, endpoints, commitWithin = None):
         self._add_batch = []
         if not endpoints:
             logger.warning("Faulty Solr configuration, SOLR will not be available!")
         self.endpoints = endpoints
+        self.commitWithin = commitWithin
 
 
     def _send_solr_command(self, core_url, json_command):
@@ -44,7 +45,11 @@ class SolrInterface(object):
         """
 
         # Check document language and dispatch to correct core
-        url = urlparse.urljoin(core_url + '/', "update?overwrite=true&wt=json&commitWithin=1000")
+        if self.commitWithin:
+            url = urlparse.urljoin(core_url + '/', "update?overwrite=true&wt=json&commitWithin=1000")
+        else:
+            url = urlparse.urljoin(core_url + '/', "update?overwrite=true&wt=json")
+
         try:
             request = urllib2.Request(url, json_command, {'Content-Type':'application/json'})
             response = urllib2.urlopen(request).read()
