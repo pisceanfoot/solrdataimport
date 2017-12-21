@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 def build_document_key(section, row):
     document = {}
     for item in row:
-        if section.solrId:
+        if section.documentId:
             array = []
-            for key in section.solrId:
+            for key in section.documentId:
                 array.append(str(row[key]))
 
             document["id"] = '#'.join(array)
@@ -26,16 +26,16 @@ def build_document(section, row):
     for item in row:
         if section.exclude and item in section.exclude:
             continue
-        if section.solrKey and not item in section.solrKey:
+        if section.documentField and not item in section.documentField:
             continue
 
         item_value = row[item]
 
         __appendDocument(document, item, item_value)
 
-        if section.solrId:
+        if section.documentId:
             array = []
-            for key in section.solrId:
+            for key in section.documentId:
                 array.append(str(row[key]))
 
             document["id"] = '#'.join(array)

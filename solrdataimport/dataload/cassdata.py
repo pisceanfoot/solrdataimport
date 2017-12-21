@@ -23,8 +23,8 @@ class CassandraData(object):
         self.nestKey = nestKey
         self.combineKey = combineKey
         self.exclude = exclude
-        self.solrKey = solrKey
-        self.solrId = solrId
+        self.documentField = documentField
+        self.documentId = documentId
     """
     def __init__(self, section):
         self.section = section

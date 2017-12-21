@@ -45,7 +45,7 @@ config
         "cache": true
     }],
     "exclude": ["member_id"],
-    "solrId": ["member_id"]
+    "documentId": ["member_id"]
 },{
     "name": "hb.game_epic",
     "core_name": "userinfo",
@@ -63,8 +63,8 @@ config
             "epic_id": "team_epic_id"
         }
     }],
-    "solrId": ["epic_id", "member_id"]，
-    "solrKey": [epic_id", "member_id", "xid", "xkey"] # Option
+    "documentId": ["epic_id", "member_id"]，
+    "documentField": [epic_id", "member_id", "xid", "xkey"] # Option
 },{
     "name": "hcdglobal.userinfo2",
     "table": "hcdglobal.userinfo2",
@@ -89,6 +89,6 @@ config
         }
     }],
     "exclude": ["member_id"],
-    "solrId": ["userId"]
+    "documentId": ["userId"]
 }]
 ```
