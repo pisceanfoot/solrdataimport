@@ -77,7 +77,6 @@ class CassandraData(object):
 
         resultSet = self.main_resultSet
         current_rows = resultSet.current_rows
-
         if not current_rows:
             return []
 
@@ -87,7 +86,6 @@ class CassandraData(object):
         data_array = []
 
         for row in current_rows:
-
             data = {}
             for index in range(column_length):
                 column_name = resultSet.column_names[index]

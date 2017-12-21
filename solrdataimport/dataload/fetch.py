@@ -27,12 +27,15 @@ class FetchData:
         if not current_rows:
             logger.debug('no row found in section %s', self.section.name)
             return []
+
         all_rows = current_rows
+        logger.info('rows batch count %s', len(all_rows))
 
         if self.section.nest:
-            logger.debug('nest child table')
+            logger.info('nest child table')
             for nestSection in self.section.nest:
-                
+                logger.info('nest table %s', nestSection.table)
+
                 rows_after_combine = []
                 for row in all_rows:
                     new_rows = self.__loadNest(nestSection, row)
@@ -40,13 +43,18 @@ class FetchData:
                         rows_after_combine = rows_after_combine + new_rows
                 all_rows = copy.copy(rows_after_combine)
 
+                logger.info('nest table %s done', nestSection.table)
+
 
         if self.section.combine:
-            logger.debug('combine child table as a new field')
+            logger.info('combine child table as a new field')
 
             for combineSection in self.section.combine:
+                logger.info('combine table %s', combineSection.table)
+
                 for row in all_rows:
                     self.__setCombine(combineSection, row)
+                logger.info('combine table %s done', combineSection.table)
         
         return all_rows
 
@@ -68,7 +76,6 @@ class FetchData:
         copy_all_rows = []
         while current_rows:
             copy_all_rows = copy_all_rows + current_rows
-
             if nestload.has_more_pages():
                 nestload.fetch_next_page()
                 current_rows = nestload.get_rows()
