@@ -44,17 +44,28 @@ class DataImport:
         solrExport.prepareSolr()
 
         try:
+            total = 0
             while True:
                 cassDataRows = cassData.get_rows()
                 if not cassDataRows:
                     logger.debug('end export to solr')
                     break
 
+                currentBatch = len(cassDataRows)
+                total = total + currentBatch
+                logger.info('current data loads (%s), total (%s)', currentBatch, total)
+                
                 solrExport.send2Solr(cassDataRows)
-                cassData.fetch_next_page()
+                logger.info('solr sent, will fetch next batch')
+
+                if(cassData.has_more_pages()):
+                    cassData.fetch_next_page()
+                else:
+                    break
 
             solrExport.solrSent()
-            logger.debug('solr sent')
+
+            logger.info('solr send completely')
         except:
             logger.error('send solr document error %s', format_exc())
             solrExport.solrRollback()

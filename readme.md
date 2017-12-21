@@ -65,5 +65,30 @@ config
     }],
     "solrId": ["epic_id", "member_id"]，
     "solrKey": [epic_id", "member_id", "xid", "xkey"] # Option
+},{
+    "name": "hcdglobal.userinfo2",
+    "table": "hcdglobal.userinfo2",
+    "key": ["userId"],
+    "nest": [{
+        "table": "sso.member",
+        "nestKey": {
+            "member_id": "userId"
+        }
+    }],
+    "combine": [{
+        "table": "hcdglobal.userinfo3",
+        "combineKey": {
+            "userId": "member_id"
+        },
+        "field_name": "userInfo",
+        "field_type": "object",
+        "field_map_one2one": false,
+        "cache": true,
+        "condition": {
+            "status": "A"
+        }
+    }],
+    "exclude": ["member_id"],
+    "solrId": ["userId"]
 }]
 ```

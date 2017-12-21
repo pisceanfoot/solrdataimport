@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 import copy
 import json
+from solrdataimport.lib.jsonEncoder import JSONEncoder
 from solrdataimport.dataload.cassdata import CassandraData
 
 logger = logging.getLogger(__name__)
@@ -111,14 +112,7 @@ class FetchData:
                 copy_all_rows = copy_all_rows[0]
 
             if section.field_type == "string":
-                row[section.field_name] = json.dumps(copy_all_rows, ensure_ascii=False)
+                row[section.field_name] = json.dumps(copy_all_rows, ensure_ascii=False, cls=JSONEncoder)
             else:
                 row[section.field_name] = copy_all_rows
                     
-
-
-
-
-
-
-

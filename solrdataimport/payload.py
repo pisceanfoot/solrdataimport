@@ -40,7 +40,7 @@ class Payload:
 				"nest_table_key2": "parent_table_key2"
 			},
 			"field_name": "new field name",
-			"field_type": "string",
+			"field_type": "string",  # string or object
 			"field_map_one2one": True,
 			"cache": Ture or False # nest table can be cachable
 			"condition": {

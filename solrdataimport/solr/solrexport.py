@@ -33,13 +33,13 @@ class SolrExport(object):
         solr_core_url = urlparse.urljoin(self.solr_url, self.section.core_name or self.section.name)
         logger.debug('solr core url: %s', solr_core_url)
 
-        commitWithIn= None
+        commitWithIn = None
         if self.solrCluster:
             commitWithIn = self.commitWithIn
         elif not self.fullDataImport:
             commitWithIn = self.commitWithIn
 
-        return SolrInterface([solr_core_url], commitWithIn = commitWithIn)
+        return SolrInterface([solr_core_url], commitWithIn)
 
     def prepareSolr(self):
         if self.fullDataImport:

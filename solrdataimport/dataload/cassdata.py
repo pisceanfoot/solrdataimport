@@ -96,12 +96,16 @@ class CassandraData(object):
                 if self.section.condition and column_name in self.section.condition:
                     if not self.__checkCondition(column_name, column_value):
                         logger.debug('===>condition check no pass')
-                        continue
+                        data = None
+                        break
 
                 if self.section.alias and column_name in self.section.alias:
                     column_name = self.section.alias[column_name]
+
+
                 data[column_name] = column_value
-            data_array.append(data)
+            if data:
+                data_array.append(data)
 
         return data_array
 
@@ -119,7 +123,7 @@ class CassandraData(object):
             return False
 
         logger.debug('has_more_pages')
-        return self.main_resultSet.has_more_pages()
+        return self.main_resultSet.has_more_pages
 
     def set_cache(self, data_array):
         if not self.section.cache:
