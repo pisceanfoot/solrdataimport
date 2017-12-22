@@ -127,19 +127,20 @@ class ElasticSearchExport(ExportClient):
         if pre_index_name:
             logger.info('delete alias on index "%s"', pre_index_name)
             self.__client.indices.delete_alias(index = pre_index_name, name = '_all', ignore = [404])
-
-        if pre_index_name:
-            logger.info('delete old index %s', pre_index_name)
-            self.__client.indices.delete(pre_index_name, ignore=[404])
         else:
-            logger.info('delete old index %s', self.section.index_name)
+            logger.info('alia name == index name, delete old index first: %s', self.section.index_name)
             self.__client.indices.delete(self.section.index_name, ignore=[404])
 
-        # TODO: 后删
         for name in all_aliases:
             setting = all_aliases[name]
             logger.info('create "%s" alias on index "%s"', name, self.index_name)
             self.__client.indices.put_alias(index = self.index_name, name = name, body = setting)
+
+        if pre_index_name:
+            logger.info('delete old index %s', pre_index_name)
+            self.__client.indices.delete(pre_index_name, ignore=[404])
+
+        logger.info('sent operation done')
 
     def __parseAlias(self, alias):
         if not alias:
