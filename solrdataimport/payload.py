@@ -109,6 +109,15 @@ class Payload:
 
 		return None
 
+	@classmethod
+	def get_all_index(cls, index_name):
+		array = []
+		for x in cls.sectionList:
+			if x.index_name == index_name:
+				array.append(x)
+
+		return array
+
 
 def lower_case(x):
 	return x.lower()

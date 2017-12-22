@@ -10,12 +10,13 @@ except: # For Python 3
     import urllib.parse as urlparse
     # from urllib.parse import urlencode
 
+from solrdataimport.exportclient import ExportClient
 from solrdataimport.solr.solrclient import SolrInterface
 from solrdataimport.solr.solrschema import build_document, build_search_key
 
 logger = logging.getLogger(__name__)
 
-class SolrExport(object):
+class SolrExport(ExportClient):
 
     def __init__(self, solrConfig, section):
         self.solr_url = solrConfig['solr_url']
@@ -41,7 +42,7 @@ class SolrExport(object):
 
         return SolrInterface([solr_core_url], commitWithIn)
 
-    def prepareSolr(self):
+    def prepare(self):
         if self.fullDataImport:
             logger.debug('full data import')
 
@@ -52,7 +53,7 @@ class SolrExport(object):
             logger.debug('send delete all command')
             self.__client.deleteAll()
 
-    def send2Solr(self, cassDataRows):
+    def send(self, cassDataRows):
         logger.debug('send2Solr')
 
         documents = []
@@ -67,7 +68,7 @@ class SolrExport(object):
         if documents:
             self.__client.add(documents)
 
-    def solrSent(self):
+    def sent(self):
         logger.debug('flush last batch')
         self.__client.flush()
 
@@ -75,12 +76,11 @@ class SolrExport(object):
             logger.debug('commit changes')
             self.__client.commit()
 
-    def solrRollback(self):
+    def rollback(self):
         # Cluster mode not support rollback
         if self.fullDataImport and not self.solrCluster:
             logger.debug('rollback solr change since last comit')
             self.__client.rollback()
-
 
     def deleteByQuery(self, row):
         logger.debug('delete by query')
