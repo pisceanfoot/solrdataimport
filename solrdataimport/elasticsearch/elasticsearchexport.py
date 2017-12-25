@@ -19,7 +19,7 @@ from solrdataimport.elasticsearch.elasticsearchschema import build_document, bui
 
 logger = logging.getLogger(__name__)
 
-NEW_INDEX_NAME_SEPARATOR = '^666^'
+NEW_INDEX_NAME_SEPARATOR = '_666_'
 
 class ElasticSearchExport(ExportClient):
 
@@ -84,12 +84,14 @@ class ElasticSearchExport(ExportClient):
         if len(documents) > 1:
             logger.info('bulk update documents %s', len(documents))
             helpers.bulk(self.__client, self.__bulkSet(documents))
+            self.__client.indices.refresh(self.section.index_name, ignore=[404])
         else:
             logger.info('send update index command')
             self.__client.index(self.index_name, 
                 body = documents[0]['body'], 
                 doc_type = self.type_name,
-                id = documents[0]['id'])
+                id = documents[0]['id'],
+                refresh = True)
 
     def __bulkSet(self, documents):
         for doc in documents:
@@ -145,13 +147,16 @@ class ElasticSearchExport(ExportClient):
     def __parseAlias(self, alias):
         if not alias:
             return None
+        if alias.get('error'):
+            return None
 
+        logger.info('alias detail %s', alias)
         alias_result = {}
         for name in alias:
             value = alias[name]
             current = value.get('aliases')
             if current:
-                alias_result['index'] = key
+                alias_result['index'] = name
                 alias_result['alias'] = current
 
             break
@@ -166,7 +171,7 @@ class ElasticSearchExport(ExportClient):
             logger.info('rollback, delete current index %s', self.index_name)
             self.__client.indices.delete(self.index_name, ignore=[404,400])
 
-    def deleteByQuery(self, row):
+    def deleteByQuery(self, **row):
         logger.info('delete by query in section %s', self.section.name)
 
         document = build_search_key(self.section, **row)
@@ -174,11 +179,12 @@ class ElasticSearchExport(ExportClient):
 
         array = []
         for x in document:
-            array.append(x + ":" + doc[x])
+            array.append(x + ":" + document[x])
 
         del_command = " AND ".join(map(str, array))
         logger.debug('delete command %s', del_command)
 
-        self.__client.delete_by_query(index = self.section.index_name, 
+        self.__client.delete_by_query(self.section.index_name, {},
             doc_type = self.section.type_name,
-            q = del_command)
+            q = del_command,
+            refresh = True)

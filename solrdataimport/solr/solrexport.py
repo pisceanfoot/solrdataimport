@@ -82,7 +82,7 @@ class SolrExport(ExportClient):
             logger.debug('rollback solr change since last comit')
             self.__client.rollback()
 
-    def deleteByQuery(self, row):
+    def deleteByQuery(self, **row):
         logger.debug('delete by query')
 
         document = build_search_key(self.section, **row)

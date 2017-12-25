@@ -69,6 +69,6 @@ def build_search_key(section, **kwargs):
         if value is None:
             continue
 
-        search[name] = value
+        search[name.lower()] = value
 
     return search
