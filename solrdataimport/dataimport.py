@@ -105,8 +105,10 @@ class DataImport:
 
             logger.info('export data sent completely')
         except:
-            logger.error('send document in section "%s" error %s', section, format_exc())
+            errorInfo = format_exc()
+            logger.error('send document in section "%s" error %s', section, errorInfo)
             exportHandler.rollback()
+            raise Exception('send document in section "%s" error %s', section, errorInfo)
 
     def delete(self, name, **kwargs):
         logger.info('export section "%s"', name)
