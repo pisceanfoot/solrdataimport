@@ -14,6 +14,8 @@ class Payload:
 	{
 		"name": "key of the config, and also set as solr core name if core_name not present",
 		"core_name": "solr core name",
+		"index_name": "index name for elastic search",
+		"type_name": "type name for elastic search",
 		"table": "cassandra table name (keyspace.table), will use in cql like select * from table.",
 		"key": ["table key and partition key list"],
 		"nest": [{
@@ -47,8 +49,8 @@ class Payload:
 				"filed": "value"  # field should equals to value
 			}
 		}],
-		"solrId": ["value for solr _id"],
-	  	"solrKey":["solr filed"],
+		"documentId": ["value for solr _id"],
+	  	"documentField":["solr filed"],
 	  	"exclude": ["field name"]
 	}
 	"""
@@ -86,10 +88,10 @@ class Payload:
 
 					if section_map.exclude:
 						section_map.exclude = map(lower_case, section_map.exclude)
-					if section_map.solrId:
-						section_map.solrId = map(lower_case, section_map.solrId)
-					if section_map.solrKey:
-						section_map.solrKey = map(lower_case, section_map.solrKey)
+					if section_map.documentId:
+						section_map.documentId = map(lower_case, section_map.documentId)
+					if section_map.documentField:
+						section_map.documentField = map(lower_case, section_map.documentField)
 					if section_map.condition:
 						section_map.condition = lower_case_dict(section_map, 'condition')
 					if section_map.alias:
@@ -106,6 +108,15 @@ class Payload:
 				return x
 
 		return None
+
+	@classmethod
+	def get_all_index(cls, index_name):
+		array = []
+		for x in cls.sectionList:
+			if x.index_name == index_name:
+				array.append(x)
+
+		return array
 
 
 def lower_case(x):

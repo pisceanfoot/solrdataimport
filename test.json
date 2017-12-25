@@ -10,7 +10,7 @@
 		"cache": true
 	}],
 	"exclude": ["member_id"],
-	"solrId": ["member_id"]
+	"documentId": ["member_id"]
 },{
 	"name": "hb.game_epic",
 	"core_name": "hcdglobal.userinfo",
@@ -28,5 +28,5 @@
 			"epic_id": "team_epic_id"
 		}
 	}],
-	"solrId": ["epic_id", "member_id"]
+	"documentId": ["epic_id", "member_id"]
 }]

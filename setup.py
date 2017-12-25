@@ -13,7 +13,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 
-requires = ['cassandra-driver', 'pylru', 'pytz']
+requires = ['cassandra-driver', 'pylru', 'pytz', 'elasticsearch']
 
 with open('solrdataimport/__init__.py', 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
