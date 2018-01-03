@@ -44,11 +44,14 @@ class SolrExport(ExportClient):
 
     def prepare(self):
         if self.fullDataImport:
-            logger.debug('full data import')
+            logger.info('full data import')
 
-            if not self.solrCluster:
-                logger.debug('normal mode, reset status first')
-                self.__client.rollback()
+            if self.solrCluster:
+                logger.info('solr cluster')
+                return
+
+            logger.debug('normal mode, reset status first')
+            self.__client.rollback()
 
             logger.debug('send delete all command')
             self.__client.deleteAll()

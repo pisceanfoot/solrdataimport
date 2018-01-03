@@ -8,6 +8,7 @@ from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra import ConsistencyLevel
 from cassandra import cqltypes
+from cassandra.concurrent import execute_concurrent
 
 import logging
 logger = logging.getLogger(__name__)
@@ -51,6 +52,26 @@ class CassandraClient:
             return cls.session.execute(pcql, data)
         else:
             return cls.session.execute(cql)
+
+    @classmethod
+    def execute_concurrent(cls, cqlArray, dataArray):
+        if not cls.session:
+            cls.connect()
+
+        statements_and_params = []
+        index = 0
+        for cql in cqlArray:
+            data = dataArray[index]
+            select_statement = session.prepare(cql)
+            select_statement.consistency_level = ConsistencyLevel.ONE
+            statements_and_params.append((select_statement, data))
+
+            index = index + 1
+
+        results = execute_concurrent(
+            cls.session, statements_and_params, raise_on_first_error=False)
+
+        return results
 
     @classmethod
     def wrapper(cls, column_type, param):
