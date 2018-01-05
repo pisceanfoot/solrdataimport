@@ -7,6 +7,7 @@ import copy
 import json
 from solrdataimport.lib.jsonEncoder import JSONEncoder
 from solrdataimport.dataload.cassdata import CassandraData
+from solrdataimport.dataload.cassdatabatchload import CassandraDataBatchLoad
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +37,17 @@ class FetchData:
             for nestSection in self.section.nest:
                 logger.info('nest table %s', nestSection.table)
 
+                cassDataArray = CassandraDataBatchLoad.batchResult(nestSection, 
+                    all_rows, nestSection.nestKey)
+
                 rows_after_combine = []
+                index = 0
                 for row in all_rows:
-                    new_rows = self.__loadNest(nestSection, row)
+                    cassDataResult = cassDataArray[index]
+                    new_rows = self.__loadNest(nestSection, row, cassDataResult)
                     if new_rows:
                         rows_after_combine = rows_after_combine + new_rows
+                    index = index + 1
                 all_rows = copy.copy(rows_after_combine)
 
                 logger.info('nest table %s done', nestSection.table)
@@ -52,8 +59,15 @@ class FetchData:
             for combineSection in self.section.combine:
                 logger.info('combine table %s', combineSection.table)
 
+                cassDataArray = CassandraDataBatchLoad.batchResult(combineSection, 
+                    all_rows, combineSection.combineKey)
+
+                index = 0
                 for row in all_rows:
-                    self.__setCombine(combineSection, row)
+                    cassDataResult = cassDataArray[index]
+                    self.__setCombine(combineSection, row, cassDataResult)
+                    index = index + 1
+
                 logger.info('combine table %s done', combineSection.table)
         
         return all_rows
@@ -62,12 +76,9 @@ class FetchData:
         self.dataload.fetch_next_page()
 
     def has_more_pages(self):
-        self.dataload.has_more_pages()
+        return self.dataload.has_more_pages()
 
-    def __loadNest(self, section, row):
-        nestload = CassandraData(section)
-        nestload.loadData(row=row, rowKey=section.nestKey)
-
+    def __loadNest(self, section, row, nestload):
         current_rows = nestload.get_rows()
         if not current_rows:
             logger.debug('empty nest row %s', section.table)
@@ -93,10 +104,7 @@ class FetchData:
 
         return combine_array
 
-    def __setCombine(self, section, row):
-        combineload = CassandraData(section)
-        combineload.loadData(row=row, rowKey=section.combineKey)
-
+    def __setCombine(self, section, row, combineload):
         current_rows = combineload.get_rows()
         if not current_rows:
             logger.debug('empty nest row %s', section.table)

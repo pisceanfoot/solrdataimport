@@ -96,9 +96,11 @@ class DataImport:
                 exportHandler.send(cassDataRows)
                 logger.info('export data sent, will fetch next batch')
 
-                if(cassData.has_more_pages()):
+                if cassData.has_more_pages():
+                    logger.info('has more pages True ===> True')
                     cassData.fetch_next_page()
                 else:
+                    logger.info('no more page == done')
                     break
 
             exportHandler.sent()

@@ -2,6 +2,7 @@ import json
 import uuid
 import datetime
 import decimal
+import cassandra
 
 class JSONEncoder(json.JSONEncoder):
     """
@@ -29,5 +30,7 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         elif isinstance(o, uuid.UUID):
             return str(o)
+        elif isinstance(o, cassandra.util.SortedSet):
+            return [unicode(val) for val in o];
         else:
             return super(JSONEncoder, self).default(o)
