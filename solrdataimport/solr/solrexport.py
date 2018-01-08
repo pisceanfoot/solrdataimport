@@ -10,17 +10,19 @@ except: # For Python 3
     import urllib.parse as urlparse
     # from urllib.parse import urlencode
 
+from solrdataimport.exportclient import ExportClient
 from solrdataimport.solr.solrclient import SolrInterface
 from solrdataimport.solr.solrschema import build_document, build_search_key
 
 logger = logging.getLogger(__name__)
 
-class SolrExport(object):
+class SolrExport(ExportClient):
 
     def __init__(self, solrConfig, section):
         self.solr_url = solrConfig['solr_url']
         self.fullDataImport = solrConfig.get('fullDataImport') or False
         self.solrCluster = solrConfig.get('cluster') or False
+        self.commitWithIn = solrConfig.get('commitWithIn') or 1000
 
         if not self.solr_url.endswith('/'):
             self.solr_url = self.solr_url + '/'
@@ -31,20 +33,30 @@ class SolrExport(object):
     def __getClient(self):
         solr_core_url = urlparse.urljoin(self.solr_url, self.section.core_name or self.section.name)
         logger.debug('solr core url: %s', solr_core_url)
-        return SolrInterface([solr_core_url])
 
-    def prepareSolr(self):
+        commitWithIn = None
+        if self.solrCluster:
+            commitWithIn = self.commitWithIn
+        elif not self.fullDataImport:
+            commitWithIn = self.commitWithIn
+
+        return SolrInterface([solr_core_url], commitWithIn)
+
+    def prepare(self):
         if self.fullDataImport:
-            logger.debug('full data import')
+            logger.info('full data import')
 
-            if not self.solrCluster:
-                logger.debug('normal mode, reset status first')
-                self.__client.rollback()
+            if self.solrCluster:
+                logger.info('solr cluster')
+                return
+
+            logger.debug('normal mode, reset status first')
+            self.__client.rollback()
 
             logger.debug('send delete all command')
             self.__client.deleteAll()
 
-    def send2Solr(self, cassDataRows):
+    def send(self, cassDataRows):
         logger.debug('send2Solr')
 
         documents = []
@@ -59,7 +71,7 @@ class SolrExport(object):
         if documents:
             self.__client.add(documents)
 
-    def solrSent(self):
+    def sent(self):
         logger.debug('flush last batch')
         self.__client.flush()
 
@@ -67,14 +79,13 @@ class SolrExport(object):
             logger.debug('commit changes')
             self.__client.commit()
 
-    def solrRollback(self):
+    def rollback(self):
         # Cluster mode not support rollback
         if self.fullDataImport and not self.solrCluster:
             logger.debug('rollback solr change since last comit')
             self.__client.rollback()
 
-
-    def deleteByQuery(self, row):
+    def deleteByQuery(self, **row):
         logger.debug('delete by query')
 
         document = build_search_key(self.section, **row)

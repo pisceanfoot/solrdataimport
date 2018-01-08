@@ -6,8 +6,9 @@ import logging
 import copy
 import json
 import uuid
+
 from solrdataimport.cass.cassClient import CassandraClient
-from solrdataimport.cass.cassSchema import CassSchema
+from solrdataimport.dataload.cqlbuilder import CqlBuilder
 import solrdataimport.lib.cache as Cache
 
 logger = logging.getLogger(__name__)
@@ -21,15 +22,18 @@ class CassandraData(object):
         self.key = key
         self.nest = nest
         self.nestKey = nestKey
+        self.combineKey = combineKey
         self.exclude = exclude
-        self.solrKey = solrKey
-        self.solrId = solrId
+        self.documentField = documentField
+        self.documentId = documentId
     """
-    def __init__(self, section):
+    def __init__(self, section, resultSet = None, cacheKey = None):
         self.section = section
         self.schema = None
         self.cache_fetch_end = False
-        self.cacheKey = None
+        self.cacheKey = cacheKey
+        
+        self.main_resultSet = resultSet
 
     @classmethod
     def initCass(cls, cassConfig):
@@ -41,24 +45,26 @@ class CassandraData(object):
         logger.debug('load section: %s', self.section.name or self.section.table)
         logger.debug('full data import: %s', fullDataImport)
         
-        self.search = self.__buildCql(fullDataImport, rowKey=rowKey)
-        logger.debug("cql %s", self.search)
+        search = CqlBuilder.buildCql(fullDataImport, self.section.table, 
+            self.section.key, rowKey=rowKey)
+        logger.debug("cql %s", search)
 
-        params = self.__buildParam(fullDataImport, row=row, rowKey=rowKey, **kwargs)
+        params = CqlBuilder.buildParam(fullDataImport, self.section.table, 
+            self.section.key, row=row, rowKey=rowKey, **kwargs)
         logger.debug("cql params %s", params)
 
         if self.section.cache:
-            self.cacheKey = self.__buildCacheKey(self.search, params)
+            self.cacheKey = CqlBuilder.buildCacheKey(search, params)
             logger.debug("cache key %s", self.cacheKey)
 
-            if Cache.hasKey(self.cacheKey):
+            if self._InCache(self.cacheKey):
                 logger.debug('loadData - hit cache: %s', self.cacheKey)
                 return
 
-        self.__loadDataFromCass(self.search, params)
+        self.__loadDataFromCass(search, params)
 
-    def __buildCacheKey(self, cql, params):
-        return cql + '_'.join(map(str, params))
+    def _InCache(self, cacheKey):
+        return Cache.hasKey(cacheKey)
 
     def __loadDataFromCass(self, cql, params):
         logger.debug('execute cql %s', cql)
@@ -69,14 +75,13 @@ class CassandraData(object):
         if self.cache_fetch_end:
             return []
 
-        if self.section.cache and Cache.hasKey(self.cacheKey):
+        if self.section.cache and self._InCache(self.cacheKey):
             logger.debug('current_rows - hit cache: %s', self.cacheKey)
             self.cache_fetch_end = True
             return Cache.get(self.cacheKey)
 
         resultSet = self.main_resultSet
         current_rows = resultSet.current_rows
-
         if not current_rows:
             return []
 
@@ -86,7 +91,6 @@ class CassandraData(object):
         data_array = []
 
         for row in current_rows:
-
             data = {}
             for index in range(column_length):
                 column_name = resultSet.column_names[index]
@@ -95,12 +99,16 @@ class CassandraData(object):
                 if self.section.condition and column_name in self.section.condition:
                     if not self.__checkCondition(column_name, column_value):
                         logger.debug('===>condition check no pass')
-                        continue
+                        data = None
+                        break
 
                 if self.section.alias and column_name in self.section.alias:
                     column_name = self.section.alias[column_name]
+
+
                 data[column_name] = column_value
-            data_array.append(data)
+            if data:
+                data_array.append(data)
 
         return data_array
 
@@ -117,66 +125,17 @@ class CassandraData(object):
             logger.debug('has_more_pages - in cache return False: %s', self.cacheKey)
             return False
 
-        logger.debug('has_more_pages')
-        return self.main_resultSet.has_more_pages()
+        logger.debug('has_more_pages => %s', self.main_resultSet.has_more_pages)
+        return self.main_resultSet.has_more_pages
 
     def set_cache(self, data_array):
         if not self.section.cache:
             return
+        if Cache.hasKey(self.cacheKey):
+            return;
 
         logger.debug('set cache')
         Cache.set(self.cacheKey, data_array)
-
-    def __buildCql(self, fullDataImport, rowKey=None):
-        cql = 'select * from {0}'.format(self.section.table)
-        self.cql = cql
-
-        appendKey = []
-        if not fullDataImport and self.section.key:
-            appendKey = self.section.key
-        if rowKey:
-            for key in rowKey:
-                appendKey.append(key)
-
-        if appendKey:
-            key = ' = ? and '.join(appendKey)
-            cql = cql + ' where ' + key + ' = ?;'
-
-        return cql
-
-    def __buildParam(self, fullDataImport, row=None, rowKey=None, **kwargs):
-        if fullDataImport:
-            return None
-
-        params = []
-        if self.section.key:
-            for x in self.section.key:
-                if x not in kwargs:
-                    raise Exception('key %s not found in param', x)
-
-                column_type = self.__fetchFieldType(x)
-                params.append(CassandraClient.wrapper(column_type, kwargs.pop(x)))
-        
-        if row and rowKey:
-            for key in rowKey:
-                fetchKey = rowKey[key].lower()
-
-                column_type = self.__fetchFieldType(key)
-                params.append(CassandraClient.wrapper(column_type, row[fetchKey]))
-
-        return params
-
-    def __fetchFieldType(self, field):
-        logger.debug('fetch filed type for table "%s" field "%s"', self.section.table, field)
-
-        schema = CassSchema.load(self.section.table)
-        field_name_lower = field.lower()
-
-        if field_name_lower in schema:
-            return schema[field_name_lower]
-        else:
-            logger.error('field "%s" not in table "%s"', field, self.section.table)
-            raise Exception('field "%s" not in table "%s"', field, self.section.table)
 
     def __checkCondition(self, column_name, column_value):
         logger.debug('check condition')
@@ -188,12 +147,3 @@ class CassandraData(object):
             check_value = column_value
 
         return self.section.condition[column_name] == check_value
-
-
-
-
-
-
-
-
-

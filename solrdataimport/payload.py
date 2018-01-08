@@ -14,6 +14,8 @@ class Payload:
 	{
 		"name": "key of the config, and also set as solr core name if core_name not present",
 		"core_name": "solr core name",
+		"index_name": "index name for elastic search",
+		"type_name": "type name for elastic search",
 		"table": "cassandra table name (keyspace.table), will use in cql like select * from table.",
 		"key": ["table key and partition key list"],
 		"nest": [{
@@ -30,8 +32,25 @@ class Payload:
 	            "field": "new name"
 	        }
 		}],
-		"solrId": ["value for solr _id"],
-	  	"solrKey":["solr filed"],
+		"combine": [{ # combine result will set as a JSON field in parent doc
+					  # one record will set like "name": {}
+					  # mutil records will set as "name": [{}]
+					  # also can set as "name": JSON.stringify(...)
+			"table": "table name",
+			"combineKey": { # same as nestKey
+				"nest_table_key": "parent_table_key", # select * from table_parent inner join this_table where this_table.nest_table_key = table_parent.parent_table_key
+				"nest_table_key2": "parent_table_key2"
+			},
+			"field_name": "new field name",
+			"field_type": "string",  # string or object
+			"field_map_one2one": True,
+			"cache": Ture or False # nest table can be cachable
+			"condition": {
+				"filed": "value"  # field should equals to value
+			}
+		}],
+		"documentId": ["value for solr _id"],
+	  	"documentField":["solr filed"],
 	  	"exclude": ["field name"]
 	}
 	"""
@@ -57,13 +76,22 @@ class Payload:
 
 							array.append(section_nest)
 						section_map.nest = array
+					if section_map.combine:
+						array = []
+						for combine in section_map.combine:
+							section_combine = Map(combine)
+							if section_combine.condition:
+								section_combine.condition = lower_case_dict(section_combine, 'condition')
+
+							array.append(section_combine)
+						section_map.combine = array
 
 					if section_map.exclude:
 						section_map.exclude = map(lower_case, section_map.exclude)
-					if section_map.solrId:
-						section_map.solrId = map(lower_case, section_map.solrId)
-					if section_map.solrKey:
-						section_map.solrKey = map(lower_case, section_map.solrKey)
+					if section_map.documentId:
+						section_map.documentId = map(lower_case, section_map.documentId)
+					if section_map.documentField:
+						section_map.documentField = map(lower_case, section_map.documentField)
 					if section_map.condition:
 						section_map.condition = lower_case_dict(section_map, 'condition')
 					if section_map.alias:
@@ -80,6 +108,15 @@ class Payload:
 				return x
 
 		return None
+
+	@classmethod
+	def get_all_index(cls, index_name):
+		array = []
+		for x in cls.sectionList:
+			if x.index_name == index_name:
+				array.append(x)
+
+		return array
 
 
 def lower_case(x):
