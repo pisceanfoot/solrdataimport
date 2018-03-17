@@ -193,3 +193,39 @@ dataimport = DataImport(setting)
     * args: export row(s) where match **key** setting in config_file. 
 
 
+config example
+--------------------------
+
+```
+[{
+  "name": "user_info",
+  "table": "user_info",
+  "key": ["userId"],
+  "nest": [{
+    "table": "user_detail",
+    "nestKey": {
+      "userId": "userId"
+    }
+  }],
+  "documentId": ["userId"]
+},{
+  "name": "user_info2",
+  "core_name": "user_info",
+  "table": "user_info",
+  "key": ["userId"],
+  "nest": [{
+    "table": "user_detail",
+    "nestKey": {
+      "userId": "userId"
+    },
+    "condition": {
+      "team_id": "1"
+    },
+    "alias": {
+      "team_id": "new_team_id"
+    }
+  }],
+  "documentId": ["userId", "new_team_id"]
+}]
+
+```
